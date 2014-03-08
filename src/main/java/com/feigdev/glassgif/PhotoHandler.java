@@ -23,19 +23,20 @@ public class PhotoHandler implements Camera.PictureCallback {
     }
 
     public PhotoHandler() {
+        super();
     }
 
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
+        Log.d(TAG, "onPictureTaken");
         File pictureFileDir = getDir();
         if (!pictureFileDir.exists())
             pictureFileDir.mkdirs();
 
         if (!pictureFileDir.exists()) {
-            Log.d(TAG, "Couldn't make directory");
+            Log.e(TAG, "Couldn't make directory");
             return;
         }
-
 
         String photoFile = "Picture_" + System.currentTimeMillis() + ".jpg";
 
@@ -49,8 +50,7 @@ public class PhotoHandler implements Camera.PictureCallback {
             fos.close();
             Log.d(TAG, "New Image saved:" + photoFile);
         } catch (Exception error) {
-            Log.d(TAG, "File" + filename + "not saved: "
-                    + error.getMessage());
+            Log.e(TAG, "File" + filename + "not saved: ", error);
         }
     }
 
