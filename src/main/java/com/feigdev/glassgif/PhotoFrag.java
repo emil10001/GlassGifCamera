@@ -14,12 +14,13 @@ import java.io.IOException;
 /**
  * Much of the content comes from here: http://www.vogella.com/tutorials/AndroidCamera/article.html
  */
-public class PhotoFrag extends Fragment {
+public class PhotoFrag extends Fragment implements PhotoLooper {
     private static final String TAG = "PhotoFrag";
     private Camera camera;
     private CameraPreview cameraPreview;
     private SurfaceView preview;
     private SurfaceHolder holder;
+    private int count = 0;
 
     public PhotoFrag() {
     }
@@ -32,6 +33,7 @@ public class PhotoFrag extends Fragment {
 
         preview = (SurfaceView) rootView.findViewById(R.id.preview);
         preview.getHolder().addCallback(mSurfaceHolderCallback);
+        count = 0;
 
         return rootView;
     }
@@ -89,20 +91,23 @@ public class PhotoFrag extends Fragment {
 
     }
 
-    private void takePictures() {
-        Log.d(TAG, "takePictures");
+    private void takePicture() {
+        Log.d(TAG, "takePicture");
+        count++;
 
         camera.takePicture(null, null,
-                new PhotoHandler());
-
-//        for (int i = 0; i < 5; i++) {
-//            Log.d(TAG, "take picture " + i);
-//            camera.takePicture(null, null,
-//                    new PhotoHandler());
-//        }
-
+                new PhotoHandler(this));
     }
 
+    @Override
+    public void retakePicture(){
+        if (count >= 5){
+            Log.d(TAG, "taken 5");
+            return;
+        }
+        camera.startPreview();
+        takePicture();
+    }
 
     /**
      * There is currently a race condition where using a voice command to launch,
@@ -127,7 +132,7 @@ public class PhotoFrag extends Fragment {
         @Override
         protected void onPostExecute(Void params) {
             initCamera();
-            takePictures();
+            takePicture();
         }
     }
 

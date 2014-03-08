@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
  */
 public class PhotoHandler implements Camera.PictureCallback {
     private static final String TAG = "PhotoHandler";
+    private PhotoLooper photoLooper;
 
     static {
         File pictureFileDir = getDir();
@@ -22,8 +23,9 @@ public class PhotoHandler implements Camera.PictureCallback {
         Log.d(TAG, pictureFileDir.toString() + " exists? " + pictureFileDir.exists());
     }
 
-    public PhotoHandler() {
+    public PhotoHandler(PhotoLooper photoLooper) {
         super();
+        this.photoLooper = photoLooper;
     }
 
     @Override
@@ -52,6 +54,8 @@ public class PhotoHandler implements Camera.PictureCallback {
         } catch (Exception error) {
             Log.e(TAG, "File" + filename + "not saved: ", error);
         }
+
+        photoLooper.retakePicture();
     }
 
     private static File getDir() {
