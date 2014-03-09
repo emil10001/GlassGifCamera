@@ -1,18 +1,17 @@
 package com.feigdev.glassgif;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
-import com.feigdev.reusableandroidutils.ImageTools;
 import com.google.android.glass.sample.camera.CameraPreview;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Much of the content comes from here: http://www.vogella.com/tutorials/AndroidCamera/article.html
@@ -24,8 +23,7 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     private SurfaceView preview;
     private SurfaceHolder holder;
     private int count = 0;
-    private ArrayList<String> listOfFiles = new ArrayList<String>();
-
+    private static boolean isAlive = false;
 
     public PhotoFrag() {
     }
@@ -47,6 +45,7 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     public void onResume() {
         Log.d(TAG, "onResume");
         super.onResume();
+        isAlive = true;
 
         new GlassPhotoDelay().execute();
     }
@@ -54,6 +53,7 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     @Override
     public void onPause() {
         Log.d(TAG, "onPause");
+        isAlive = false;
 
         if (camera != null) {
             camera.stopPreview();
@@ -75,6 +75,7 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
         }
 
         camera = Camera.open();
+        camera.setDisplayOrientation(0);
 
         /**
          * The camera preview on Glass needs certain special parameters to run properly
@@ -82,6 +83,11 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
          */
         Camera.Parameters params = camera.getParameters();
         params.setPreviewFpsRange(30000, 30000);
+        params.setJpegQuality(90);
+        // hard-coding is bad, but I'm a bit lazy
+        params.setPictureSize(640, 480);
+        params.setPreviewSize(640, 480);
+//        printPictureSizes(params);
         camera.setParameters(params);
 
         cameraPreview = new CameraPreview(getActivity());
@@ -95,9 +101,20 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
 
     }
 
+    // used for discovering supported sizes
+    private void printPictureSizes(Camera.Parameters params){
+        List<Camera.Size> sizeList = params.getSupportedPictureSizes();
+        for (Camera.Size size : sizeList){
+            Log.d(TAG, "size " + size.width + "x" + size.height);
+        }
+    }
+
     private void takePicture() {
         Log.d(TAG, "takePicture");
         count++;
+
+        if (!isAlive)
+            return;
 
         camera.takePicture(null, null,
                 new PhotoHandler(this));
@@ -105,31 +122,19 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
 
     @Override
     public void retakePicture(String filename){
-        listOfFiles.add(filename);
-        if (count >= 5){
+        StaticManager.listOfFiles.add(filename);
+        if (count >= 10){
             Log.d(TAG, "taken 10");
-            new BackgroundGif().execute();
+            getActivity().startService(new Intent(getActivity(), GlassGifService.class));
+            getActivity().finish();
             return;
         }
+        if (!isAlive)
+            return;
+
         camera.startPreview();
         takePicture();
     }
-
-    private class BackgroundGif extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            Log.d(TAG, "GlassPhotoDelay");
-            ImageTools.makeGif(listOfFiles, PhotoHandler.getDir() + File.separator + System.currentTimeMillis() + ".gif");
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void params) {
-            // create card
-        }
-    }
-
 
     /**
      * There is currently a race condition where using a voice command to launch,
@@ -153,6 +158,9 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
 
         @Override
         protected void onPostExecute(Void params) {
+            if (!isAlive)
+                return;
+
             initCamera();
             takePicture();
         }

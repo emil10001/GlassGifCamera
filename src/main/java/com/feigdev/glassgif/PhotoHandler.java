@@ -59,11 +59,11 @@ public class PhotoHandler implements Camera.PictureCallback {
 
             File pictureFile = new File(filename);
 
-            byte[] smallerData = ImageTools.bitmapToByteArray(ImageTools.shrinkBitmap(params[0]));
+//            byte[] smallerData = ImageTools.bitmapToByteArray(ImageTools.shrinkBitmap(params[0]));
 
             try {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
-                fos.write(smallerData);
+                fos.write(params[0]);
                 fos.close();
                 Log.d(TAG, "New Image saved:" + photoFile);
             } catch (Exception error) {
