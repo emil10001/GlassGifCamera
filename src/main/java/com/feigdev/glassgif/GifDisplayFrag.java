@@ -13,6 +13,6 @@ public class GifDisplayFrag extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return new GifWebView(getActivity(), StaticManager.gifFile, "480","360");
+        return new GifWebView(getActivity(), MainActivity.gifFile, "480","360");
     }
 }

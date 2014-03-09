@@ -128,7 +128,7 @@ public class PhotoFrag extends Fragment implements PhotoCallback {
 
     @Override
     public void pictureTaken(String filename){
-        StaticManager.listOfFiles.add(filename);
+        MainActivity.listOfFiles.add(filename);
         if (count >= 10){
             Log.d(TAG, "taken 10");
             flowControl.startBuild();

@@ -7,9 +7,12 @@ import android.os.Bundle;
 import android.view.WindowManager;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class MainActivity extends Activity implements GifFlowControl {
     private static final String TAG = "MainActivity";
+    static ArrayList<String> listOfFiles = new ArrayList<String>();
+    static String gifFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +43,7 @@ public class MainActivity extends Activity implements GifFlowControl {
         try {
             Intent intent =
                     new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-            intent.setData(Uri.fromFile(new File(StaticManager.gifFile)));
+            intent.setData(Uri.fromFile(new File(gifFile)));
             sendBroadcast(intent);
         } catch (Exception e) {
             e.printStackTrace();

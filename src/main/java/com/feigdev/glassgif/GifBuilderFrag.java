@@ -93,7 +93,7 @@ public class GifBuilderFrag extends Fragment {
             String gifFile = SimpleFileUtils.getDir() + File.separator + System.currentTimeMillis() + ".gif";
 
             ArrayList<Bitmap> bitmaps = new ArrayList<Bitmap>();
-            for (String filename : StaticManager.listOfFiles) {
+            for (String filename : MainActivity.listOfFiles) {
                 File f = new File(filename);
                 if (!f.exists())
                     continue;
@@ -112,7 +112,7 @@ public class GifBuilderFrag extends Fragment {
                 e.printStackTrace();
             }
 
-            for (String filename : StaticManager.listOfFiles) {
+            for (String filename : MainActivity.listOfFiles) {
                 File f = new File(filename);
                 if (f.exists())
                     f.delete();
@@ -135,14 +135,14 @@ public class GifBuilderFrag extends Fragment {
                 // http://stackoverflow.com/a/21843601/974800
                 Uri imgUri = Uri.fromFile(new File(params));
 
-                StaticManager.gifFile = params;
+                MainActivity.gifFile = params;
 
                 // create card
                 Card gifCard = new Card(getActivity());
                 if (null != imgUri) {
                     gifCard.addImage(imgUri);
                     gifCard.setImageLayout(Card.ImageLayout.FULL);
-                    gifCard.setText(StaticManager.gifFile);
+                    gifCard.setText(MainActivity.gifFile);
                 } else
                     gifCard.setText("failed to get image uri");
 
