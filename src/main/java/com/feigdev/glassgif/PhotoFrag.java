@@ -7,9 +7,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
+import com.feigdev.reusableandroidutils.ImageTools;
 import com.google.android.glass.sample.camera.CameraPreview;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Much of the content comes from here: http://www.vogella.com/tutorials/AndroidCamera/article.html
@@ -21,6 +24,8 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     private SurfaceView preview;
     private SurfaceHolder holder;
     private int count = 0;
+    private ArrayList<String> listOfFiles = new ArrayList<String>();
+
 
     public PhotoFrag() {
     }
@@ -44,7 +49,6 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
         super.onResume();
 
         new GlassPhotoDelay().execute();
-
     }
 
     @Override
@@ -100,14 +104,32 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     }
 
     @Override
-    public void retakePicture(){
+    public void retakePicture(String filename){
+        listOfFiles.add(filename);
         if (count >= 5){
-            Log.d(TAG, "taken 5");
+            Log.d(TAG, "taken 10");
+            new BackgroundGif().execute();
             return;
         }
         camera.startPreview();
         takePicture();
     }
+
+    private class BackgroundGif extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Log.d(TAG, "GlassPhotoDelay");
+            ImageTools.makeGif(listOfFiles, PhotoHandler.getDir() + File.separator + System.currentTimeMillis() + ".gif");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void params) {
+            // create card
+        }
+    }
+
 
     /**
      * There is currently a race condition where using a voice command to launch,
