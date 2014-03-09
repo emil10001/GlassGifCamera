@@ -1,10 +1,12 @@
 package com.feigdev.glassgif;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.view.Window;
 import android.view.WindowManager;
+
+import java.io.File;
 
 public class MainActivity extends Activity implements GifFlowControl {
     private static final String TAG = "MainActivity";
@@ -18,7 +20,7 @@ public class MainActivity extends Activity implements GifFlowControl {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         getFragmentManager().beginTransaction()
                 .replace(R.id.container, new PhotoFrag())
@@ -26,14 +28,23 @@ public class MainActivity extends Activity implements GifFlowControl {
     }
 
     @Override
-    public void startBuild(){
+    public void startBuild() {
         getFragmentManager().beginTransaction()
                 .replace(R.id.container, new GifBuilderFrag())
                 .commit();
     }
 
     @Override
-    public void startDisplay(){
+    public void startDisplay() {
+        try {
+            Intent intent =
+                    new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            intent.setData(Uri.fromFile(new File(StaticManager.gifFile)));
+            sendBroadcast(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         getFragmentManager().beginTransaction()
                 .replace(R.id.container, new GifDisplayFrag())
                 .commit();
