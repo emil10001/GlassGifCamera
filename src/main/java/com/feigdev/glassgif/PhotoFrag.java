@@ -1,13 +1,15 @@
 package com.feigdev.glassgif;
 
+import android.app.Activity;
 import android.app.Fragment;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
+import com.feigdev.reusableandroidutils.graphics.PhotoCallback;
+import com.feigdev.reusableandroidutils.graphics.PhotoHandler;
 import com.google.android.glass.sample.camera.CameraPreview;
 
 import java.io.IOException;
@@ -16,7 +18,7 @@ import java.util.List;
 /**
  * Much of the content comes from here: http://www.vogella.com/tutorials/AndroidCamera/article.html
  */
-public class PhotoFrag extends Fragment implements PhotoLooper {
+public class PhotoFrag extends Fragment implements PhotoCallback {
     private static final String TAG = "PhotoFrag";
     private Camera camera;
     private CameraPreview cameraPreview;
@@ -24,8 +26,12 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     private SurfaceHolder holder;
     private int count = 0;
     private static boolean isAlive = false;
+    private GifFlowControl flowControl;
 
-    public PhotoFrag() {
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        flowControl = (GifFlowControl)activity;
     }
 
     @Override
@@ -36,7 +42,6 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
 
         preview = (SurfaceView) rootView.findViewById(R.id.preview);
         preview.getHolder().addCallback(mSurfaceHolderCallback);
-        count = 0;
 
         return rootView;
     }
@@ -46,6 +51,7 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
         Log.d(TAG, "onResume");
         super.onResume();
         isAlive = true;
+        count = 0;
 
         new GlassPhotoDelay().execute();
     }
@@ -121,12 +127,11 @@ public class PhotoFrag extends Fragment implements PhotoLooper {
     }
 
     @Override
-    public void retakePicture(String filename){
+    public void pictureTaken(String filename){
         StaticManager.listOfFiles.add(filename);
         if (count >= 10){
             Log.d(TAG, "taken 10");
-            getActivity().startService(new Intent(getActivity(), GlassGifService.class));
-            getActivity().finish();
+            flowControl.startBuild();
             return;
         }
         if (!isAlive)
