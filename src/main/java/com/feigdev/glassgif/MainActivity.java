@@ -36,6 +36,7 @@ public class MainActivity extends Activity implements GifFlowControl {
 
     @Override
     public void startDisplay() {
+        // https://www.grokkingandroid.com/adding-files-to-androids-media-library-using-the-mediascanner/
         try {
             Intent intent =
                     new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);

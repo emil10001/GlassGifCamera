@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import com.feigdev.reusableandroidutils.PlatformUtils;
 import com.feigdev.reusableandroidutils.SimpleFileUtils;
 import com.feigdev.reusableandroidutils.graphics.ImageTools;
 import com.google.android.glass.app.Card;
@@ -57,7 +58,7 @@ public class GifBuilderFrag extends Fragment {
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         updater.cancel(true);
         super.onPause();
     }
@@ -102,7 +103,9 @@ public class GifBuilderFrag extends Fragment {
             }
             byte[] bytes = ImageTools.generateGIF(bitmaps);
             SimpleFileUtils.write(gifFile, bytes);
-            String newGifFile = "/sdcard/DCIM/Camera/" + System.currentTimeMillis() + ".gif";
+            String newGifFile = SimpleFileUtils.getSdDir() + File.separator
+                    + "DCIM" + File.separator + "Camera" + File.separator
+                    + System.currentTimeMillis() + ".gif";
             try {
                 SimpleFileUtils.copy(gifFile, newGifFile);
             } catch (IOException e) {
@@ -114,11 +117,8 @@ public class GifBuilderFrag extends Fragment {
                 if (f.exists())
                     f.delete();
             }
-            File f = new File(gifFile);
-            if (f.exists())
-                f.delete();
 
-            return newGifFile;
+            return gifFile;
         }
 
         protected void onProgressUpdate(Bitmap... progress) {
@@ -128,29 +128,31 @@ public class GifBuilderFrag extends Fragment {
         @Override
         protected void onPostExecute(String params) {
             Log.d(TAG, "creating card with params: " + params);
-            if (null == params)
-                return;
+            if (PlatformUtils.isGlass()) {
+                if (null == params)
+                    return;
 
-            // http://stackoverflow.com/a/21843601/974800
-            Uri imgUri = Uri.fromFile(new File(params));
+                // http://stackoverflow.com/a/21843601/974800
+                Uri imgUri = Uri.fromFile(new File(params));
 
-            StaticManager.gifFile = params;
+                StaticManager.gifFile = params;
 
-            // create card
-            Card gifCard = new Card(getActivity());
-            if (null != imgUri) {
-                gifCard.addImage(imgUri);
-                gifCard.setImageLayout(Card.ImageLayout.FULL);
-                gifCard.setText(StaticManager.gifFile);
-            } else
-                gifCard.setText("failed to get image uri");
+                // create card
+                Card gifCard = new Card(getActivity());
+                if (null != imgUri) {
+                    gifCard.addImage(imgUri);
+                    gifCard.setImageLayout(Card.ImageLayout.FULL);
+                    gifCard.setText(StaticManager.gifFile);
+                } else
+                    gifCard.setText("failed to get image uri");
 
-            // menus currently not supported
-            // https://code.google.com/p/google-glass-api/issues/detail?id=320
+                // menus currently not supported
+                // https://code.google.com/p/google-glass-api/issues/detail?id=320
 
-            TimelineManager tlm = TimelineManager.from(getActivity());
-            tlm.insert(gifCard);
-            Log.d(TAG, "inserted into timeline!");
+                TimelineManager tlm = TimelineManager.from(getActivity());
+                tlm.insert(gifCard);
+                Log.d(TAG, "inserted into timeline!");
+            }
 
             flowControl.startDisplay();
         }
